@@ -267,12 +267,17 @@ func validReceiver(recv string) bool {
 
 // Generate generates stubs for iface base on the tmplString.
 func Generate(recv string, iface string, tmplString string) ([]byte, error) {
-	if !validReceiver(recv) {
-		return nil, fmt.Errorf("invalid receiver: %q", recv)
-	}
 	fns, err := Funcs(iface)
 	if err != nil {
 		return nil, err
+	}
+	return GenerateMethods(recv, fns, tmplString)
+}
+
+// GenerateMethods generates code for fns with tmplString.
+func GenerateMethods(recv string, fns []Func, tmplString string) ([]byte, error) {
+	if !validReceiver(recv) {
+		return nil, fmt.Errorf("invalid receiver: %q", recv)
 	}
 	tmpl := template.Must(template.New("stub").Parse(tmplString))
 	src := genStubs(recv, fns, tmpl)
