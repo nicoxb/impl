@@ -32,3 +32,5 @@ func (s *Source) Token() (*oauth2.Token, error) {
     panic("not implemented")
 }
 ```
+
+`impl` could also be used as a package, see the sample code cli/impl.go or [godoc](https://godoc.org/github.com/zjx20/impl) for details.
