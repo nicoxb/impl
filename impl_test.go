@@ -214,3 +214,106 @@ func TestValidReceiver(t *testing.T) {
 		}
 	}
 }
+
+func TestParamStringer(t *testing.T) {
+	cases := []struct {
+		param Param
+		want  string
+	}{
+		{
+			param: Param{Name:"", Type: "string"},
+			want: "string",
+		},
+		{
+			param: Param{Name:"data", Type: "[]byte"},
+			want: "data []byte",
+		},
+	}
+
+	for _, tt := range cases {
+		str := tt.param.String()
+		if tt.want != str {
+			t.Errorf("str: %s want: %s", str, tt.want)
+		}
+	}
+}
+
+func TestFuncStringer(t *testing.T) {
+	cases := []struct {
+		fn   Func
+		want string
+	}{
+		{
+			fn: Func{
+				Name:   "VoidFunc",
+				Params: []Param{},
+				Res: []Param{},
+			},
+			want: "VoidFunc()",
+		},
+		{
+			fn: Func{
+				Name:   "SingleRet1",
+				Params: []Param{},
+				Res: []Param{{Name: "", Type: "int"}},
+			},
+			want: "SingleRet1() int",
+		},
+		{
+			fn: Func{
+				Name:   "SingleRet2",
+				Params: []Param{},
+				Res: []Param{{Name: "n", Type: "int"}},
+			},
+			want: "SingleRet2() (n int)",
+		},
+		{
+			fn: Func{
+				Name:   "MultiRet1",
+				Params: []Param{},
+				Res: []Param{
+					{Name: "", Type: "int"},
+					{Name: "", Type: "error"},
+				},
+			},
+			want: "MultiRet1() (int, error)",
+		},
+		{
+			fn: Func{
+				Name:   "MultiRet2",
+				Params: []Param{},
+				Res: []Param{
+					{Name: "n", Type: "int"},
+					{Name: "err", Type: "error"},
+				},
+			},
+			want: "MultiRet2() (n int, err error)",
+		},
+		{
+			fn: Func{
+				Name:   "SingleParam",
+				Params: []Param{{Name: "p", Type: "[]byte"}},
+				Res: []Param{},
+			},
+			want: "SingleParam(p []byte)",
+		},
+		{
+			fn: Func{
+				Name:   "MultiParam",
+				Params: []Param{
+					{Name: "n", Type: "int"},
+					{Name: "p", Type: "[]byte"},
+				},
+				Res: []Param{},
+			},
+			want: "MultiParam(n int, p []byte)",
+		},
+	}
+
+	for _, tt := range cases {
+		str := tt.fn.String()
+		if tt.want != str {
+			t.Errorf("str: %s want: %s", str, tt.want)
+		}
+	}
+}

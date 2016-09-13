@@ -177,6 +177,39 @@ type Param struct {
 	Type string
 }
 
+func (fn *Func) String() string {
+	params := ""
+	if len(fn.Params) > 0 {
+		tmp := []string{}
+		for _, p := range fn.Params {
+			tmp = append(tmp, p.String())
+		}
+		params = strings.Join(tmp, ", ")
+	}
+
+	ret := ""
+	if len(fn.Res) == 1 && fn.Res[0].Name == "" {
+		ret = fn.Res[0].Type
+	} else if len(fn.Res) > 0 {
+		tmp := []string{}
+		for _, r := range fn.Res {
+			tmp = append(tmp, r.String())
+		}
+		ret = "(" + strings.Join(tmp, ", ") + ")"
+	}
+	if ret != "" {
+		return fmt.Sprintf("%s(%s) %s", fn.Name, params, ret)
+	}
+	return fmt.Sprintf("%s(%s)", fn.Name, params)
+}
+
+func (p *Param) String() string {
+	if p.Name == "" {
+		return p.Type
+	}
+	return p.Name + " " + p.Type
+}
+
 func (p Pkg) funcsig(f *ast.Field) Func {
 	fn := Func{Name: f.Names[0].Name}
 	typ := f.Type.(*ast.FuncType)
