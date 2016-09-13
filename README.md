@@ -1,7 +1,11 @@
+Declaration: this is a fork of https://github.com/josharian/impl, and some custom features have been added into.
+
+------
+
 `impl` generates method stubs for implementing an interface.
 
 ```bash
-go get -u github.com/josharian/impl
+go get -u github.com/zjx20/impl
 ```
 
 Sample usage:
@@ -28,5 +32,3 @@ func (s *Source) Token() (*oauth2.Token, error) {
     panic("not implemented")
 }
 ```
-
-You can use `impl` from Vim with [vim-go-impl](https://github.com/rhysd/vim-go-impl)
