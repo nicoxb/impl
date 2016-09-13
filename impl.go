@@ -11,6 +11,7 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -41,10 +42,9 @@ Examples:
 )
 
 var (
-	recv     string
-	iface    string
-	tmplFile string
-	tmpl     = template.Must(template.New("stub").Parse(defaultTemplate))
+	recv       string
+	iface      string
+	tmplString = defaultTemplate
 )
 
 func parseCmd() {
@@ -54,6 +54,7 @@ func parseCmd() {
 		flag.CommandLine.PrintDefaults()
 		fmt.Fprintln(os.Stderr, "")
 	}
+	var tmplFile string
 	flag.StringVar(&tmplFile, "t", "", "`template file` for generating stub methods")
 	flag.Parse()
 
@@ -67,13 +68,13 @@ func parseCmd() {
 
 	if tmplFile != "" {
 		var err error
-		tmpl, err = template.ParseFiles(tmplFile)
+		data, err := ioutil.ReadFile(tmplFile)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to load template file: %s", err.Error())
 			os.Exit(2)
 		}
+		tmplString = string(data)
 	}
-
 }
 
 // findInterface returns the import path and identifier of an interface.
@@ -297,7 +298,7 @@ func funcs(iface string) ([]Func, error) {
 // for fns using receiver expression recv.
 // If recv is not a valid receiver expression,
 // genStubs will panic.
-func genStubs(recv string, fns []Func) []byte {
+func genStubs(recv string, fns []Func, tmpl *template.Template) []byte {
 	var buf bytes.Buffer
 	for _, fn := range fns {
 		meth := Method{Recv: recv, Func: fn}
@@ -323,18 +324,26 @@ func validReceiver(recv string) bool {
 	return err == nil
 }
 
+// Generate generates stubs for iface base on the tmplString.
+func Generate(recv string, iface string, tmplString string) ([]byte, error) {
+	if !validReceiver(recv) {
+		return nil, fmt.Errorf("invalid receiver: %q", recv)
+	}
+	fns, err := funcs(iface)
+	if err != nil {
+		return nil, err
+	}
+	tmpl := template.Must(template.New("stub").Parse(tmplString))
+	src := genStubs(recv, fns, tmpl)
+	return src, nil
+}
+
 func main() {
 	parseCmd()
-	if !validReceiver(recv) {
-		fatal(fmt.Sprintf("invalid receiver: %q", recv))
-	}
-
-	fns, err := funcs(iface)
+	src, err := Generate(recv, iface, tmplString)
 	if err != nil {
 		fatal(err)
 	}
-
-	src := genStubs(recv, fns)
 	fmt.Print(string(src))
 }
 
