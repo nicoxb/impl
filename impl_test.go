@@ -182,14 +182,14 @@ func TestFuncs(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		fns, err := funcs(tt.iface)
+		fns, err := Funcs(tt.iface)
 		gotErr := err != nil
 		if tt.wantErr != gotErr {
-			t.Errorf("funcs(%q).err=%v want %s", tt.iface, err, errBool(tt.wantErr))
+			t.Errorf("Funcs(%q).err=%v want %s", tt.iface, err, errBool(tt.wantErr))
 			continue
 		}
 		if !reflect.DeepEqual(fns, tt.want) {
-			t.Errorf("funcs(%q).fns=\n%v\nwant\n%v\n", tt.iface, fns, tt.want)
+			t.Errorf("Funcs(%q).fns=\n%v\nwant\n%v\n", tt.iface, fns, tt.want)
 		}
 	}
 }

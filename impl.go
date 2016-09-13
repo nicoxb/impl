@@ -193,10 +193,10 @@ func (p Pkg) funcsig(f *ast.Field) Func {
 	return fn
 }
 
-// funcs returns the set of methods required to implement iface.
+// Funcs returns the set of methods required to implement iface.
 // It is called funcs rather than methods because the
 // function descriptions are functions; there is no receiver.
-func funcs(iface string) ([]Func, error) {
+func Funcs(iface string) ([]Func, error) {
 	// Locate the interface.
 	path, id, err := findInterface(iface)
 	if err != nil {
@@ -221,7 +221,7 @@ func funcs(iface string) ([]Func, error) {
 	for _, fndecl := range idecl.Methods.List {
 		if len(fndecl.Names) == 0 {
 			// Embedded interface: recurse
-			embedded, err := funcs(p.fullType(fndecl.Type))
+			embedded, err := Funcs(p.fullType(fndecl.Type))
 			if err != nil {
 				return nil, err
 			}
@@ -270,7 +270,7 @@ func Generate(recv string, iface string, tmplString string) ([]byte, error) {
 	if !validReceiver(recv) {
 		return nil, fmt.Errorf("invalid receiver: %q", recv)
 	}
-	fns, err := funcs(iface)
+	fns, err := Funcs(iface)
 	if err != nil {
 		return nil, err
 	}
