@@ -80,6 +80,7 @@ func findInterface(iface string) (path string, id string, err error) {
 type Pkg struct {
 	*build.Package
 	*token.FileSet
+	*ast.File
 }
 
 // typeSpec locates the *ast.TypeSpec for type id in the import path.
@@ -91,7 +92,7 @@ func typeSpec(path string, id string) (Pkg, *ast.TypeSpec, error) {
 
 	fset := token.NewFileSet() // share one fset across the whole package
 	for _, file := range pkg.GoFiles {
-		f, err := parser.ParseFile(fset, filepath.Join(pkg.Dir, file), nil, 0)
+		f, err := parser.ParseFile(fset, filepath.Join(pkg.Dir, file), nil, parser.ParseComments)
 		if err != nil {
 			continue
 		}
@@ -106,7 +107,7 @@ func typeSpec(path string, id string) (Pkg, *ast.TypeSpec, error) {
 				if spec.Name.Name != id {
 					continue
 				}
-				return Pkg{Package: pkg, FileSet: fset}, spec, nil
+				return Pkg{Package: pkg, FileSet: fset, File: f}, spec, nil
 			}
 		}
 	}
@@ -166,9 +167,10 @@ type Method struct {
 
 // Func represents a function signature.
 type Func struct {
-	Name   string
-	Params []Param
-	Res    []Param
+	Name    string
+	Params  []Param
+	Res     []Param
+	Comment string
 }
 
 // Param represents a parameter in a function or method signature.
@@ -250,6 +252,7 @@ func Funcs(iface string) ([]Func, error) {
 		return nil, fmt.Errorf("empty interface: %s", iface)
 	}
 
+	cmap := ast.NewCommentMap(p.FileSet, p.File, p.File.Comments)
 	var fns []Func
 	for _, fndecl := range idecl.Methods.List {
 		if len(fndecl.Names) == 0 {
@@ -263,6 +266,9 @@ func Funcs(iface string) ([]Func, error) {
 		}
 
 		fn := p.funcsig(fndecl)
+		if cgs, ok := cmap[fndecl]; ok && len(cgs) > 0 {
+			fn.Comment = cgs[0].Text()
+		}
 		fns = append(fns, fn)
 	}
 	return fns, nil

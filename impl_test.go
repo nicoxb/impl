@@ -80,9 +80,10 @@ func TestTypeSpec(t *testing.T) {
 
 func TestFuncs(t *testing.T) {
 	cases := []struct {
-		iface   string
-		want    []Func
-		wantErr bool
+		iface         string
+		want          []Func
+		wantErr       bool
+		checkComments bool
 	}{
 		{
 			iface: "io.ReadWriter",
@@ -178,6 +179,33 @@ func TestFuncs(t *testing.T) {
 				},
 			},
 		},
+		{
+			iface: "test.TestComment",
+			want: []Func{
+				Func{
+					Name: "Add",
+					Params: []Param{
+						{Name: "a", Type: "int"},
+						{Name: "b", Type: "int"},
+					},
+					Res: []Param{
+						{Name: "", Type: "int"},
+					},
+					Comment: "Comment of Add\n",
+				},
+				Func{
+					Name: "Test",
+					Params: []Param{
+						{Name: "s", Type: "string"},
+					},
+					Res: []Param{
+						{Name: "", Type: "error"},
+					},
+					Comment: "Comment of Test\n",
+				},
+			},
+			checkComments: true,
+		},
 		{iface: "net.Tennis", wantErr: true},
 	}
 
@@ -187,6 +215,12 @@ func TestFuncs(t *testing.T) {
 		if tt.wantErr != gotErr {
 			t.Errorf("Funcs(%q).err=%v want %s", tt.iface, err, errBool(tt.wantErr))
 			continue
+		}
+		if !tt.checkComments {
+			// Ignore comments
+			for i := range fns {
+				fns[i].Comment = ""
+			}
 		}
 		if !reflect.DeepEqual(fns, tt.want) {
 			t.Errorf("Funcs(%q).fns=\n%v\nwant\n%v\n", tt.iface, fns, tt.want)
@@ -221,12 +255,12 @@ func TestParamStringer(t *testing.T) {
 		want  string
 	}{
 		{
-			param: Param{Name:"", Type: "string"},
-			want: "string",
+			param: Param{Name: "", Type: "string"},
+			want:  "string",
 		},
 		{
-			param: Param{Name:"data", Type: "[]byte"},
-			want: "data []byte",
+			param: Param{Name: "data", Type: "[]byte"},
+			want:  "data []byte",
 		},
 	}
 
@@ -247,7 +281,7 @@ func TestFuncStringer(t *testing.T) {
 			fn: Func{
 				Name:   "VoidFunc",
 				Params: []Param{},
-				Res: []Param{},
+				Res:    []Param{},
 			},
 			want: "VoidFunc()",
 		},
@@ -255,7 +289,7 @@ func TestFuncStringer(t *testing.T) {
 			fn: Func{
 				Name:   "SingleRet1",
 				Params: []Param{},
-				Res: []Param{{Name: "", Type: "int"}},
+				Res:    []Param{{Name: "", Type: "int"}},
 			},
 			want: "SingleRet1() int",
 		},
@@ -263,7 +297,7 @@ func TestFuncStringer(t *testing.T) {
 			fn: Func{
 				Name:   "SingleRet2",
 				Params: []Param{},
-				Res: []Param{{Name: "n", Type: "int"}},
+				Res:    []Param{{Name: "n", Type: "int"}},
 			},
 			want: "SingleRet2() (n int)",
 		},
@@ -293,13 +327,13 @@ func TestFuncStringer(t *testing.T) {
 			fn: Func{
 				Name:   "SingleParam",
 				Params: []Param{{Name: "p", Type: "[]byte"}},
-				Res: []Param{},
+				Res:    []Param{},
 			},
 			want: "SingleParam(p []byte)",
 		},
 		{
 			fn: Func{
-				Name:   "MultiParam",
+				Name: "MultiParam",
 				Params: []Param{
 					{Name: "n", Type: "int"},
 					{Name: "p", Type: "[]byte"},
