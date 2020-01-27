@@ -85,7 +85,7 @@ type Pkg struct {
 
 // typeSpec locates the *ast.TypeSpec for type id in the import path.
 func typeSpec(path string, id string) (Pkg, *ast.TypeSpec, error) {
-	pkg, err := build.Import(path, "", 0)
+	pkg, err := build.Import(path, ".", 0)
 	if err != nil {
 		return Pkg{}, nil, fmt.Errorf("couldn't find package %s: %v", path, err)
 	}
